@@ -14,21 +14,21 @@ const users = {
         role: 'social_monitor',
         name: 'راصد الشبكات الاجتماعية',
         dashboard: 'socialDashboard',
-        modules: ['social']
+        modules: ['social', 'media_management']
     },
     'web': {
         password: '123',
         role: 'web_monitor',
         name: 'راصد المواقع الإلكترونية',
         dashboard: 'webDashboard',
-        modules: ['web']
+        modules: ["web", "media_management"]
     },
     'tv': {
         password: '123',
         role: 'tv_monitor',
         name: 'راصد القنوات التلفزيونية',
         dashboard: 'tvDashboard',
-        modules: ['tv']
+        modules: ['tv', 'media_management']
     },
     'analyst': {
         password: '123',
@@ -146,6 +146,7 @@ function loadUserData(username) {
             updatePublishLevelOptions();
             updateFileOptions();
             updateIssueOptions();
+            openMediaManagement(); // إضافة هذا السطر لفتح نافذة إدارة الوسائل للراصدين
             break;
     }
 }

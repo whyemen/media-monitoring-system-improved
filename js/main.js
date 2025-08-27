@@ -334,8 +334,49 @@ let allEntities = [];
 
 // دالة تحميل بيانات الرصد للمحلل
 function loadMonitoringData() {
-    const monitoringData = JSON.parse(localStorage.getItem('monitoringData') || '[]');
-    filteredMonitoringData = [...monitoringData];
+    const monitoringData = JSON.parse(localStorage.getItem("monitoringData") || "[]");
+    if (monitoringData.length === 0) {
+        // إضافة بيانات وهمية لأغراض الاختبار إذا كانت البيانات فارغة
+        const dummyData = [
+            {
+                id: "1",
+                type: "social",
+                priority: "عالي",
+                date: "2025-08-26",
+                entity: "فيسبوك",
+                path: "الاجتماعي",
+                publishLevel: "عام",
+                content: "منشور حول ارتفاع أسعار السلع الأساسية.",
+                sourceLink: "#"
+            },
+            {
+                id: "2",
+                type: "web",
+                priority: "متوسط",
+                date: "2025-08-25",
+                entity: "الجزيرة نت",
+                path: "السياسي",
+                publishLevel: "خاص",
+                content: "تحليل سياسي حول التطورات الإقليمية.",
+                sourceLink: "#"
+            },
+            {
+                id: "3",
+                type: "tv",
+                priority: "منخفض",
+                date: "2025-08-24",
+                entity: "قناة اليمن",
+                path: "الثقافي",
+                publishLevel: "عام",
+                content: "برنامج وثائقي عن التراث اليمني.",
+                sourceLink: "#"
+            }
+        ];
+        localStorage.setItem("monitoringData", JSON.stringify(dummyData));
+        filteredMonitoringData = [...dummyData];
+    } else {
+        filteredMonitoringData = [...monitoringData];
+    }
     
     // استخراج جميع الكيانات الفريدة
     allEntities = [...new Set(monitoringData.map(item => item.entity).filter(entity => entity))];
