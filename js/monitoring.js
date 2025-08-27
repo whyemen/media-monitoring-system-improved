@@ -489,3 +489,71 @@ function loadMonitoringData() {
     console.log(`تم تحميل ${monitoringData.length} عنصر للتحليل`);
 }
 
+
+// دوال تحديث خيارات المواقع والقنوات للمحلل
+function updateWebsiteOptions() {
+    const websites = JSON.parse(localStorage.getItem('websites') || '[]');
+    const websiteSelects = document.querySelectorAll('#webSite');
+    
+    websiteSelects.forEach(select => {
+        if (!select) return;
+        
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">اختر الموقع</option>';
+        
+        websites.forEach(website => {
+            const option = document.createElement('option');
+            option.value = website.name;
+            option.textContent = website.name;
+            option.setAttribute('data-entity', website.entity);
+            select.appendChild(option);
+        });
+        
+        if (currentValue) select.value = currentValue;
+    });
+}
+
+function updateTVChannelOptions() {
+    const channels = JSON.parse(localStorage.getItem('tvChannels') || '[]');
+    const channelSelects = document.querySelectorAll('#tvChannel');
+    
+    channelSelects.forEach(select => {
+        if (!select) return;
+        
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">اختر القناة</option>';
+        
+        channels.forEach(channel => {
+            const option = document.createElement('option');
+            option.value = channel.name;
+            option.textContent = channel.name;
+            option.setAttribute('data-entity', channel.entity);
+            select.appendChild(option);
+        });
+        
+        if (currentValue) select.value = currentValue;
+    });
+}
+
+function updateWebsiteEntity() {
+    const websiteSelect = document.getElementById('webSite');
+    const entityInput = document.getElementById('webEntityInput');
+    
+    if (websiteSelect && entityInput) {
+        const selectedOption = websiteSelect.options[websiteSelect.selectedIndex];
+        const entity = selectedOption.getAttribute('data-entity') || '';
+        entityInput.value = entity;
+    }
+}
+
+function updateTVEntity() {
+    const channelSelect = document.getElementById('tvChannel');
+    const entityInput = document.getElementById('tvEntityInput');
+    
+    if (channelSelect && entityInput) {
+        const selectedOption = channelSelect.options[channelSelect.selectedIndex];
+        const entity = selectedOption.getAttribute('data-entity') || '';
+        entityInput.value = entity;
+    }
+}
+

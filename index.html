@@ -71,10 +71,78 @@
             </div>
             
             <div class="dashboard-content">
-                <div class="action-buttons">
+                <!-- فلاتر البحث والفرز -->
+                <div class="analyst-filters" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+                    <h3 style="margin-bottom: 15px; color: #333;">فلاتر البحث والفرز</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div class="form-group">
+                            <label>تاريخ الرصد:</label>
+                            <select id="analystDateFilter" onchange="filterMonitoringData()">
+                                <option value="">جميع التواريخ</option>
+                                <option value="today">اليوم</option>
+                                <option value="week">هذا الأسبوع</option>
+                                <option value="custom">فترة مخصصة</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>الكيان:</label>
+                            <select id="analystEntityFilter" onchange="filterMonitoringData()">
+                                <option value="">جميع الكيانات</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>نوع الرصد:</label>
+                            <select id="analystTypeFilter" onchange="filterMonitoringData()">
+                                <option value="">جميع الأنواع</option>
+                                <option value="social">شبكات اجتماعية</option>
+                                <option value="web">مواقع إلكترونية</option>
+                                <option value="tv">قنوات تلفزيونية</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="customDateRange" style="display: none; margin-top: 15px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label>من تاريخ:</label>
+                                <input type="date" id="dateFrom" onchange="filterMonitoringData()">
+                            </div>
+                            <div class="form-group">
+                                <label>إلى تاريخ:</label>
+                                <input type="date" id="dateTo" onchange="filterMonitoringData()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- عرض البيانات المرصودة -->
+                <div class="monitoring-data-section">
+                    <h3 style="margin-bottom: 15px; color: #333;">البيانات المرصودة</h3>
+                    <div id="monitoringDataList" style="max-height: 400px; overflow-y: auto;">
+                        <!-- سيتم ملء البيانات ديناميكياً -->
+                    </div>
+                </div>
+
+                <!-- حقول التحليل والتوصيات -->
+                <div class="analysis-section" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 25px;">
+                    <h3 style="margin-bottom: 15px; color: #333;">التحليل والتوصيات</h3>
+                    <div class="form-group">
+                        <label>التحليل:</label>
+                        <textarea id="analysisText" placeholder="اكتب تحليلك هنا..." style="min-height: 120px;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>التوصيات/الموجهات:</label>
+                        <textarea id="recommendationsText" placeholder="اكتب التوصيات والموجهات هنا..." style="min-height: 120px;"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button onclick="saveAnalysis()" class="action-btn">حفظ التحليل</button>
+                        <button onclick="clearAnalysis()" class="action-btn secondary-btn">مسح الحقول</button>
+                    </div>
+                </div>
+
+                <!-- الأزرار الإضافية -->
+                <div class="action-buttons" style="margin-top: 25px;">
                     <button onclick="showDirectives()" class="action-btn">عرض الموجهات</button>
-                    <button onclick="showAnalysisForm()" class="action-btn">إضافة تحليل</button>
-                    <button onclick="showMyAnalyses()" class="action-btn">تحليلاتي</button>
+                    <button onclick="showMyAnalyses()" class="action-btn">تحليلاتي المحفوظة</button>
                 </div>
             </div>
         </div>

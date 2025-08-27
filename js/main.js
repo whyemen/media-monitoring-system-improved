@@ -325,3 +325,323 @@ document.addEventListener('DOMContentLoaded', function() {
     updateStats();
 });
 
+
+// دوال المحلل الجديدة
+
+// متغيرات المحلل
+let filteredMonitoringData = [];
+let allEntities = [];
+
+// دالة تحميل بيانات الرصد للمحلل
+function loadMonitoringData() {
+    const monitoringData = JSON.parse(localStorage.getItem('monitoringData') || '[]');
+    filteredMonitoringData = [...monitoringData];
+    
+    // استخراج جميع الكيانات الفريدة
+    allEntities = [...new Set(monitoringData.map(item => item.entity).filter(entity => entity))];
+    
+    // تحديث قائمة الكيانات في الفلتر
+    updateEntityFilterOptions();
+    
+    // عرض البيانات
+    displayMonitoringData(filteredMonitoringData);
+}
+
+// دالة تحديث خيارات فلتر الكيانات
+function updateEntityFilterOptions() {
+    const entityFilter = document.getElementById('analystEntityFilter');
+    if (!entityFilter) return;
+    
+    // الاحتفاظ بالقيمة المحددة حالياً
+    const currentValue = entityFilter.value;
+    
+    // مسح الخيارات الحالية (عدا الخيار الأول)
+    entityFilter.innerHTML = '<option value="">جميع الكيانات</option>';
+    
+    // إضافة الكيانات الفريدة
+    allEntities.forEach(entity => {
+        const option = document.createElement('option');
+        option.value = entity;
+        option.textContent = entity;
+        entityFilter.appendChild(option);
+    });
+    
+    // استعادة القيمة المحددة
+    if (currentValue) {
+        entityFilter.value = currentValue;
+    }
+}
+
+// دالة فلترة بيانات الرصد
+function filterMonitoringData() {
+    const dateFilter = document.getElementById('analystDateFilter').value;
+    const entityFilter = document.getElementById('analystEntityFilter').value;
+    const typeFilter = document.getElementById('analystTypeFilter').value;
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
+    
+    // إظهار/إخفاء حقول التاريخ المخصص
+    const customDateRange = document.getElementById('customDateRange');
+    if (dateFilter === 'custom') {
+        customDateRange.style.display = 'block';
+    } else {
+        customDateRange.style.display = 'none';
+    }
+    
+    const monitoringData = JSON.parse(localStorage.getItem('monitoringData') || '[]');
+    let filtered = [...monitoringData];
+    
+    // فلترة حسب التاريخ
+    if (dateFilter === 'today') {
+        const today = new Date().toISOString().split('T')[0];
+        filtered = filtered.filter(item => item.date === today);
+    } else if (dateFilter === 'week') {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        filtered = filtered.filter(item => new Date(item.date) >= weekAgo);
+    } else if (dateFilter === 'custom' && dateFrom && dateTo) {
+        filtered = filtered.filter(item => {
+            const itemDate = new Date(item.date);
+            return itemDate >= new Date(dateFrom) && itemDate <= new Date(dateTo);
+        });
+    }
+    
+    // فلترة حسب الكيان
+    if (entityFilter) {
+        filtered = filtered.filter(item => item.entity === entityFilter);
+    }
+    
+    // فلترة حسب نوع الرصد
+    if (typeFilter) {
+        filtered = filtered.filter(item => item.type === typeFilter);
+    }
+    
+    filteredMonitoringData = filtered;
+    displayMonitoringData(filteredMonitoringData);
+}
+
+// دالة عرض بيانات الرصد
+function displayMonitoringData(data) {
+    const dataList = document.getElementById('monitoringDataList');
+    if (!dataList) return;
+    
+    if (data.length === 0) {
+        dataList.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <h4>لا توجد بيانات مرصودة</h4>
+                <p>لا توجد بيانات تطابق معايير البحث المحددة</p>
+            </div>
+        `;
+        return;
+    }
+    
+    dataList.innerHTML = data.map(item => createMonitoringItemHTML(item)).join('');
+}
+
+// دالة إنشاء HTML لعنصر الرصد
+function createMonitoringItemHTML(item) {
+    const typeLabels = {
+        'social': 'شبكات اجتماعية',
+        'web': 'مواقع إلكترونية',
+        'tv': 'قنوات تلفزيونية'
+    };
+    
+    const priorityColors = {
+        'عالي': '#dc3545',
+        'متوسط': '#ffc107',
+        'منخفض': '#28a745'
+    };
+    
+    return `
+        <div class="monitoring-item" style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div>
+                    <span class="monitoring-type" style="background: #667eea; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; margin-left: 10px;">
+                        ${typeLabels[item.type] || item.type}
+                    </span>
+                    <span class="monitoring-priority" style="background: ${priorityColors[item.priority] || '#6c757d'}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px;">
+                        ${item.priority || 'غير محدد'}
+                    </span>
+                </div>
+                <span class="monitoring-date" style="color: #6c757d; font-size: 12px;">
+                    ${formatDate(item.date)}
+                </span>
+            </div>
+            
+            <div class="monitoring-details">
+                <h5 style="margin: 0 0 8px 0; color: #333;">
+                    ${item.title || item.account || item.site || item.channel || 'بدون عنوان'}
+                </h5>
+                ${item.entity ? `<p style="margin: 0 0 5px 0; color: #666; font-size: 14px;"><strong>الكيان:</strong> ${item.entity}</p>` : ''}
+                ${item.path ? `<p style="margin: 0 0 5px 0; color: #666; font-size: 14px;"><strong>المسار:</strong> ${item.path}</p>` : ''}
+                ${item.publishLevel ? `<p style="margin: 0 0 5px 0; color: #666; font-size: 14px;"><strong>مستوى النشر:</strong> ${item.publishLevel}</p>` : ''}
+                <p style="margin: 8px 0 0 0; color: #495057; line-height: 1.5;">
+                    ${item.content ? item.content.substring(0, 200) + (item.content.length > 200 ? '...' : '') : 'لا يوجد محتوى'}
+                </p>
+            </div>
+            
+            <div style="margin-top: 10px; display: flex; gap: 10px;">
+                <button onclick="viewFullContent('${item.id}')" class="view-btn" style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                    عرض كامل
+                </button>
+                ${item.link ? `<a href="${item.link}" target="_blank" style="background: #28a745; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 12px;">رابط المصدر</a>` : ''}
+            </div>
+        </div>
+    `;
+}
+
+// دالة عرض المحتوى الكامل
+function viewFullContent(itemId) {
+    const monitoringData = JSON.parse(localStorage.getItem('monitoringData') || '[]');
+    const item = monitoringData.find(data => data.id === itemId);
+    
+    if (!item) {
+        showNotification('لم يتم العثور على البيانات', 'error');
+        return;
+    }
+    
+    // إنشاء نافذة منبثقة لعرض المحتوى الكامل
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3>المحتوى الكامل</h3>
+                <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px;">
+                    <strong>النوع:</strong> ${item.type === 'social' ? 'شبكات اجتماعية' : item.type === 'web' ? 'مواقع إلكترونية' : 'قنوات تلفزيونية'}
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>التاريخ:</strong> ${formatDate(item.date)}
+                </div>
+                ${item.entity ? `<div style="margin-bottom: 15px;"><strong>الكيان:</strong> ${item.entity}</div>` : ''}
+                ${item.title ? `<div style="margin-bottom: 15px;"><strong>العنوان:</strong> ${item.title}</div>` : ''}
+                <div style="margin-bottom: 15px;">
+                    <strong>المحتوى:</strong>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 8px; line-height: 1.6;">
+                        ${item.content || 'لا يوجد محتوى'}
+                    </div>
+                </div>
+                ${item.link ? `<div style="margin-bottom: 15px;"><strong>الرابط:</strong> <a href="${item.link}" target="_blank">${item.link}</a></div>` : ''}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // إضافة مستمع لإغلاق النافذة عند النقر خارجها
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// دالة حفظ التحليل
+function saveAnalysis() {
+    const analysisText = document.getElementById('analysisText').value.trim();
+    const recommendationsText = document.getElementById('recommendationsText').value.trim();
+    
+    if (!analysisText && !recommendationsText) {
+        showNotification('يرجى إدخال التحليل أو التوصيات على الأقل', 'error');
+        return;
+    }
+    
+    const analysis = {
+        id: generateId(),
+        analysisText: analysisText,
+        recommendations: recommendationsText,
+        timestamp: new Date().toISOString(),
+        analyst: currentUser ? currentUser.name : 'المحلل',
+        dataCount: filteredMonitoringData.length
+    };
+    
+    // حفظ التحليل
+    const analyses = JSON.parse(localStorage.getItem('analyses') || '[]');
+    analyses.push(analysis);
+    localStorage.setItem('analyses', JSON.stringify(analyses));
+    
+    showNotification('تم حفظ التحليل بنجاح');
+    
+    // مسح الحقول
+    clearAnalysis();
+}
+
+// دالة مسح حقول التحليل
+function clearAnalysis() {
+    document.getElementById('analysisText').value = '';
+    document.getElementById('recommendationsText').value = '';
+}
+
+// دالة عرض التحليلات المحفوظة
+function showMyAnalyses() {
+    const analyses = JSON.parse(localStorage.getItem('analyses') || '[]');
+    
+    if (analyses.length === 0) {
+        showNotification('لا توجد تحليلات محفوظة');
+        return;
+    }
+    
+    // إنشاء نافذة منبثقة لعرض التحليلات
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3>التحليلات المحفوظة</h3>
+                <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            </div>
+            <div class="modal-body">
+                ${analyses.map(analysis => `
+                    <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <strong>تحليل ${formatDate(analysis.timestamp)}</strong>
+                            <span style="color: #666; font-size: 12px;">عدد البيانات المحللة: ${analysis.dataCount}</span>
+                        </div>
+                        ${analysis.analysisText ? `
+                            <div style="margin-bottom: 10px;">
+                                <strong>التحليل:</strong>
+                                <div style="background: white; padding: 10px; border-radius: 4px; margin-top: 5px;">
+                                    ${analysis.analysisText}
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${analysis.recommendations ? `
+                            <div>
+                                <strong>التوصيات:</strong>
+                                <div style="background: white; padding: 10px; border-radius: 4px; margin-top: 5px;">
+                                    ${analysis.recommendations}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // إضافة مستمع لإغلاق النافذة عند النقر خارجها
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// دالة عرض الموجهات (تحديث الدالة الموجودة)
+function showDirectives() {
+    if (!currentUser || currentUser.role !== 'analyst') {
+        showNotification('غير مصرح لك بهذا الإجراء', 'error');
+        return;
+    }
+    
+    // يمكن تطوير هذه الدالة لاحقاً لعرض الموجهات المرسلة للمحلل
+    showNotification('ميزة عرض الموجهات قيد التطوير');
+}
+
